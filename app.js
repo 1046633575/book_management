@@ -43,7 +43,7 @@ app.get('/books', async (req, res) => {
 //根据id获取书
 app.get('/book', async (req, res) => {
     //根据id查找数据库
-    let book = await Book.find({
+    let book = await Book.findOne({
         _id: req.query.id
     })
     res.json(book)
@@ -132,17 +132,17 @@ app.post('/addBook', async (req, res) => {
 //更新一本书
 app.post('/updateBook', async (req, res) => {
     let book = await Book.updateOne({
-        id: req.body._id
+        _id: req.body._id
     }, req.body)
     if (book) {
         res.json({
             type: true,
-            message: '更新成功'
+            msg: '更新成功'
         })
     } else {
         res.json({
             type: false,
-            message: '更新失败'
+            msg: '更新失败'
         })
     }
 })

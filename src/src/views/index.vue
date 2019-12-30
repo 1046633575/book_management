@@ -7,7 +7,7 @@
           <i class="el-icon-menu" /> 分类管理
         </el-button>
         <h2>书籍列表</h2>
-        <el-button type="primary" @click="dialogFormVisible = true">
+        <el-button type="primary" @click="dialogFormVisible = true, operationFlag = true">
           <i class="el-icon-reading" /> 添加书籍
         </el-button>
       </div>
@@ -45,20 +45,22 @@
           <el-table-column prop="price" label="价格"></el-table-column>
           <el-table-column prop="type" label="书籍类目"></el-table-column>
           <el-table-column prop="press" label="出版社"></el-table-column>
-          <el-table-column prop="borrowNum" label="已借数量"></el-table-column>
-          <el-table-column prop="surplusNum" label="剩余数量"></el-table-column>
+          <!-- <el-table-column prop="borrowNum" label="已借数量"></el-table-column>
+          <el-table-column prop="surplusNum" label="剩余数量"></el-table-column>-->
           <el-table-column prop="num" label="书籍总数"></el-table-column>
-          <el-table-column fixed="right" label="操作" width="150">
-            <el-button type="primary" size="small">借一本</el-button>
-            <el-button type="success" size="small">编辑</el-button>
-            <el-button type="danger" size="small">删除</el-button>
+          <el-table-column fixed="right" label="操作" width="250">
+            <template slot-scope="scope">
+              <el-button type="primary" size="small">借一本</el-button>
+              <el-button @click="handlerModify(scope.row)" type="success" size="small">编辑</el-button>
+              <el-button type="danger" size="small">删除</el-button>
+            </template>
           </el-table-column>
         </el-table>
       </el-card>
     </el-card>
 
     <!-- 添加书籍表单 -->
-    <el-dialog title="添加分类" :visible.sync="dialogFormVisible">
+    <el-dialog :title="operationFlag ? '添加书籍' : '修改书籍'" :visible.sync="dialogFormVisible">
       <el-form>
         <el-form-item label="书籍名称">
           <el-input v-model="bookName" autocomplete="off"></el-input>
@@ -78,7 +80,7 @@
               v-for="(item,index) in options"
               :key="index"
               :label="item.name"
-              :value="item._id"
+              :value="item.name"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -99,6 +101,9 @@
             :on-success="handlerSuccess"
           >
             <i slot="default" class="el-icon-plus"></i>
+            <div class="img" v-if="!operationFlag">
+              <img :src="imgBaseUrl + bookSrc" alt />
+            </div>
             <div slot="file" slot-scope="{file}">
               <img class="el-upload-list__item-thumbnail" :src="imgBaseUrl + bookSrc" alt />
               <span class="el-upload-list__item-actions">
@@ -136,7 +141,7 @@ export default {
       //书名
       bookName: "",
       //作者
-      bookAuthor: '',
+      bookAuthor: "",
       //介绍
       bookDetail: "",
       //价格
@@ -166,7 +171,11 @@ export default {
       //图片服务器地址
       imgBaseUrl: "http://localhost:3000",
       //图片上传后的地址
-      bookSrc: ""
+      bookSrc: "",
+      //true添加书籍   false修改书籍
+      operationFlag: true,
+      //书籍id  用于编辑书籍时使用
+      bookId: ""
     };
   },
   mounted() {
@@ -214,30 +223,38 @@ export default {
         type: this.bookType,
         num: this.bookNum
       };
+      //判断是添加书籍还是修改书籍操作
+      if (!this.operationFlag) {
+        //修改书籍  调用修改方法
+        this.modifyBook(obj);
+        //打断程序执行
+        return false;
+      }
       //添加书籍
       let res = await this.axios.post("/addBook", JSON.stringify(obj), {
         headers: { "Content-Type": "application/json" }
       });
-      if(res.data.type) {
-        console.log(res.data)
+      if (res.data.type) {
         this.$message({
           message: res.data.msg,
           type: "success"
         });
+        //刷新页面
+        this.getBooks();
       } else {
-        this.$message.error(res.data.msg)
+        this.$message.error(res.data.msg);
       }
       //清空表单
-      this.bookName = '',
-      this.bookAuthor = '',
-      this.bookDetail = '',
-      this.bookPrice = '',
-      this.bookSrc = '',
-      this.bookType = '',
-      this.bookPress = '',
-      this.bookNum = ''
+      (this.bookName = ""),
+        (this.bookAuthor = ""),
+        (this.bookDetail = ""),
+        (this.bookPrice = ""),
+        (this.bookSrc = ""),
+        (this.bookType = ""),
+        (this.bookPress = ""),
+        (this.bookNum = "");
       //关闭表单
-      this.dialogFormVisible = false
+      this.dialogFormVisible = false;
     },
     //添加或修改书籍时验证必填值是否填写
     handlerCheck() {
@@ -262,6 +279,50 @@ export default {
         return false;
       }
       return true;
+    },
+    //点击编辑按钮触发事件
+    async handlerModify(row) {
+      this.bookId = row._id;
+      //改变操作状态
+      this.operationFlag = false;
+      //打开form表单
+      this.dialogFormVisible = true;
+      //获取所编辑书籍的数据
+      const result = await this.axios.get(`/book?id=${row._id}`);
+      if (result) {
+        const obj = result.data;
+        this.bookName = obj.name;
+        this.bookDetail = obj.detail;
+        this.bookAuthor = obj.author;
+        this.bookPrice = obj.price;
+        this.bookPress = obj.press;
+        this.bookSrc = obj.img;
+        this.bookType = obj.type;
+        this.bookNum = obj.num;
+      } else {
+        this.$message.error("error 未知错误！");
+      }
+    },
+    /**
+     * 修改书籍  obj要修改的数据对象
+     */
+    async modifyBook(obj) {
+      obj._id = this.bookId;
+      const result = await this.axios.post("/updateBook", JSON.stringify(obj), {
+        headers: { "Content-Type": "application/json" }
+      });
+      if (result.data.type) {
+        this.$message({
+          type: "success",
+          message: result.data.msg
+        });
+      } else {
+        this.$message.error(result.data.msg);
+      }
+      //关闭form表单
+      this.dialogFormVisible = false;
+      //重新获取书籍列表
+      this.getBooks()
     }
   }
 };
@@ -269,7 +330,7 @@ export default {
 
 <style lang="scss" scoped>
 .about {
-  img{
+  img {
     width: 80px;
     height: 80px;
   }
