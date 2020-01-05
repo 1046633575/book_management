@@ -96,6 +96,19 @@
             :on-exceed="handlerExceed"
             :on-success="handlerSuccess"
           >
+            <img v-if="bookSrc" :src="imgBaseUrl + bookSrc" class="avatar" />
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          </el-upload>
+
+          <!-- <el-upload
+            :action="uploadImgUrl"
+            list-type="picture-card"
+            :auto-upload="true"
+            :limit="1"
+            :file-list="fileList"
+            :on-exceed="handlerExceed"
+            :on-success="handlerSuccess"
+          >
             <i slot="default" class="el-icon-plus"></i>
             <div class="img" v-if="!operationFlag">
               <img :src="imgBaseUrl + bookSrc" alt />
@@ -112,11 +125,11 @@
                 </span>
               </span>
             </div>
-          </el-upload>
+          </el-upload>-->
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button @click="cancel">取 消</el-button>
         <el-button type="primary" @click="addOrModifyBook">确 定</el-button>
       </div>
     </el-dialog>
@@ -237,14 +250,15 @@ export default {
         this.$message.error(res.data.msg);
       }
       //清空表单
-      (this.bookName = ""),
-        (this.bookAuthor = ""),
-        (this.bookDetail = ""),
-        (this.bookPrice = ""),
-        (this.bookSrc = ""),
-        (this.bookType = ""),
-        (this.bookPress = ""),
-        (this.bookNum = "");
+      this.bookName = "";
+      this.bookDetail = "";
+      this.bookAuthor = "";
+      this.bookPrice = "";
+      this.bookPress = "";
+      this.bookSrc = "";
+      this.bookType = "";
+      this.bookNum = "";
+      this.fileList = [];
       //关闭表单
       this.dialogFormVisible = false;
     },
@@ -311,6 +325,16 @@ export default {
       } else {
         this.$message.error(result.data.msg);
       }
+      //清空表单
+      this.bookName = '';
+      this.bookDetail = '';
+      this.bookAuthor = '';
+      this.bookPrice = '';
+      this.bookPress = '';
+      this.bookSrc = '';
+      this.bookType = '';
+      this.bookNum = '';
+      this.fileList = []
       //关闭form表单
       this.dialogFormVisible = false;
       //重新获取书籍列表
@@ -336,7 +360,7 @@ export default {
               this.$message.error(result.data.msg);
             }
             //重新获取所有书籍
-            this.getBooks()
+            this.getBooks();
           });
         })
         .catch(() => {
@@ -348,12 +372,25 @@ export default {
     },
     //根据分类查询书籍
     async searchType() {
-      const res = await this.axios.get(`/typeBooks?type=${this.value}`)
-      if(res.status === 200) {
-        this.tableData = res.data
+      const res = await this.axios.get(`/typeBooks?type=${this.value}`);
+      if (res.status === 200) {
+        this.tableData = res.data;
       } else {
-        this.$message.error('error，未知错误！')
+        this.$message.error("error，未知错误！");
       }
+    },
+    //点击取消按钮时 清除所有表单数据
+    cancel() {
+      this.dialogFormVisible = false;
+      this.bookName = "";
+      this.bookDetail = "";
+      this.bookAuthor = "";
+      this.bookPrice = "";
+      this.bookPress = "";
+      this.bookSrc = "";
+      this.bookType = "";
+      this.bookNum = "";
+      this.fileList = [];
     }
   }
 };
@@ -361,10 +398,6 @@ export default {
 
 <style lang="scss" scoped>
 .about {
-  img {
-    width: 80px;
-    height: 80px;
-  }
   .header {
     display: flex;
     align-items: center;
@@ -383,15 +416,22 @@ export default {
   }
   .list {
     margin-top: 20px;
+    img {
+      width: 80px;
+      height: 80px;
+    }
   }
 }
-.el-form-item{
-  display: flex; 
+.el-form-item {
+  display: flex;
   align-items: center;
-  
 }
-.el-form-item__label{
-    display: inline-block;
-    width: 70px !important;
-  }
+.el-form-item__label {
+  display: inline-block;
+  width: 70px !important;
+}
+.avatar {
+  width: 100%;
+  height: 100%;
+}
 </style>
