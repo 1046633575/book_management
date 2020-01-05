@@ -34,10 +34,47 @@ app.use(bodyParser.urlencoded({
 }))
 app.use(bodyParser.json())
 
+//根据分类查询
+app.get('/typeBooks', async (req, res) => {
+    //拿到请求的参数
+    const type = req.query.type
+    if (!type || type === '全部') {
+        const books = await Book.find()
+        if (books) {
+            res.json(books)
+        } else {
+            res.json({
+                type: false,
+                msg: '查询失败！'
+            })
+        }
+    } else {
+        const books = await Book.find({
+            type: req.query.type
+        })
+        if (books) {
+            res.json(books)
+        } else {
+            res.json({
+                type: false,
+                msg: '查询失败！'
+            })
+        }
+    }
+
+})
+
 //获取所有的书
 app.get('/books', async (req, res) => {
     let books = await Book.find()
-    res.json(books)
+    if (books) {
+        res.json(books)
+    } else {
+        res.json({
+            type: false,
+            msg: '查询失败！'
+        })
+    }
 })
 
 //根据id获取书
@@ -57,12 +94,12 @@ app.get('/bookDelete', async (req, res) => {
     if (result) {
         res.json({
             type: true,
-            message: '删除成功'
+            msg: '删除成功'
         })
     } else {
         res.json({
             type: false,
-            message: '删除失败'
+            msg: '删除失败'
         })
     }
 })
@@ -116,7 +153,7 @@ app.get('/bookBorrow', async (req, res) => {
 //添加一本书
 app.post('/addBook', async (req, res) => {
     let result = await Book.create(req.body).catch((err) => console.log(err))
-    if(result) {
+    if (result) {
         res.json({
             type: true,
             msg: '添加成功!'
@@ -146,6 +183,7 @@ app.post('/updateBook', async (req, res) => {
         })
     }
 })
+
 
 //查询所有分类
 app.get('/findAllType', async (req, res) => {

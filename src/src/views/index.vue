@@ -20,13 +20,10 @@
             v-for="(item,index) in options"
             :key="index"
             :label="item.name"
-            :value="item._id"
+            :value="item.name"
           ></el-option>
         </el-select>
-        <span style="margin-left: 15px;">价格：</span>
-        <el-input v-model="input1" placeholder="请输入价格" style="max-width: 200px;"></el-input>~
-        <el-input v-model="input2" placeholder="请输入价格" style="max-width: 200px;"></el-input>
-        <el-button style="float: right;" type="primary" class="searButton">
+        <el-button @click="searchType" style="float: right;" type="primary" class="searButton">
           <i class="el-icon-search" /> 查询
         </el-button>
       </el-card>
@@ -41,18 +38,17 @@
           </el-table-column>
           <el-table-column prop="name" label="名称"></el-table-column>
           <el-table-column prop="author" label="名称"></el-table-column>
-          <el-table-column prop="detail" label="介绍"></el-table-column>
+          <el-table-column prop="detail" label="介绍" width="300"></el-table-column>
           <el-table-column prop="price" label="价格"></el-table-column>
           <el-table-column prop="type" label="书籍类目"></el-table-column>
           <el-table-column prop="press" label="出版社"></el-table-column>
           <!-- <el-table-column prop="borrowNum" label="已借数量"></el-table-column>
           <el-table-column prop="surplusNum" label="剩余数量"></el-table-column>-->
           <el-table-column prop="num" label="书籍总数"></el-table-column>
-          <el-table-column fixed="right" label="操作" width="250">
+          <el-table-column fixed="right" label="操作" width="150">
             <template slot-scope="scope">
-              <el-button type="primary" size="small">借一本</el-button>
               <el-button @click="handlerModify(scope.row)" type="success" size="small">编辑</el-button>
-              <el-button type="danger" size="small">删除</el-button>
+              <el-button @click="handlerDelete(scope.row)" type="danger" size="small">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -158,10 +154,6 @@ export default {
       options: [],
       //书籍列表
       tableData: [],
-      //价格查询 开始
-      input1: "",
-      //价格查询 结束
-      input2: "",
       //条件查询栏 选择框
       value: "",
       //上传图片的地址
@@ -322,7 +314,46 @@ export default {
       //关闭form表单
       this.dialogFormVisible = false;
       //重新获取书籍列表
-      this.getBooks()
+      this.getBooks();
+    },
+    //删除书籍
+    handlerDelete(obj) {
+      console.log(obj);
+      this.$confirm(`您确定要删除 ${obj.name} 吗?`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          //删除分类
+          this.axios.get(`/bookDelete?id=${obj._id}`).then(result => {
+            if (result.data.type) {
+              this.$message({
+                type: "success",
+                message: result.data.msg
+              });
+            } else {
+              this.$message.error(result.data.msg);
+            }
+            //重新获取所有书籍
+            this.getBooks()
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
+    },
+    //根据分类查询书籍
+    async searchType() {
+      const res = await this.axios.get(`/typeBooks?type=${this.value}`)
+      if(res.status === 200) {
+        this.tableData = res.data
+      } else {
+        this.$message.error('error，未知错误！')
+      }
     }
   }
 };
