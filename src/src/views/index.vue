@@ -57,20 +57,20 @@
 
     <!-- 添加书籍表单 -->
     <el-dialog :title="operationFlag ? '添加书籍' : '修改书籍'" :visible.sync="dialogFormVisible">
-      <el-form>
-        <el-form-item label="书籍名称">
+      <el-form size="small">
+        <el-form-item label="书籍名称" label-width="70px">
           <el-input v-model="bookName" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="作者">
+        <el-form-item label="作者" label-width="70px">
           <el-input v-model="bookAuthor" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="书籍详情">
-          <el-input v-model="bookDetail" autocomplete="off"></el-input>
+        <el-form-item label="书籍详情" label-width="70px">
+          <el-input v-model="bookDetail" autocomplete="off" type="textarea" autosize></el-input>
         </el-form-item>
-        <el-form-item label="书籍价格">
+        <el-form-item label="书籍价格" label-width="70px">
           <el-input v-model="bookPrice" autocomplete="off" value="number"></el-input>
         </el-form-item>
-        <el-form-item label="书籍类目">
+        <el-form-item label="书籍类目" label-width="70px">
           <el-select v-model="bookType" placeholder="请选择">
             <el-option
               v-for="(item,index) in options"
@@ -80,13 +80,13 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="出版社">
+        <el-form-item label="出版社" label-width="70px">
           <el-input v-model="bookPress" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="书籍总数">
+        <el-form-item label="书籍总数" label-width="70px">
           <el-input v-model="bookNum" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="书籍图片">
+        <el-form-item label="书籍图片" label-width="70px">
           <el-upload
             :action="uploadImgUrl"
             list-type="picture-card"
@@ -385,4 +385,13 @@ export default {
     margin-top: 20px;
   }
 }
+.el-form-item{
+  display: flex; 
+  align-items: center;
+  
+}
+.el-form-item__label{
+    display: inline-block;
+    width: 70px !important;
+  }
 </style>
